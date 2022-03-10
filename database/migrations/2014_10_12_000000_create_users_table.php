@@ -25,6 +25,8 @@ return new class extends Migration
             $table->rememberToken();
             $table->foreign('tipo_usuario_id')->references('id')->on('tipo_usuario');
             $table->timestamps();
+            //php">php artisan migrate --path=/database/migrations/my_migration.php
+
         });
     }
 
