@@ -18,4 +18,3 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post('/api/user/new', [UserController::class, 'store']);
