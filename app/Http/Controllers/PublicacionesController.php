@@ -14,7 +14,26 @@ class PublicacionesController extends Controller
      */
     public function index()
     {
-        //
+        $publicacionesColeccion = Publicacion::all();
+        $objeto = [];
+        $publicaciones = [];
+        foreach($publicacionesColeccion as $p){
+            $objeto = [
+                "id" => $p->id,
+                "tipoPublicacion" => $p->tipo_publicacion,
+                "mostrar_contacto" => $p->mostrar_contacto,
+                "fotoObjeto" => self::getImage($p->foto_objeto),
+                "descObjetoC" => $p->desc_objetoC,
+                "descDetallada" => $p->desc_detallada,
+                "lugar" => $p->lugar
+            ];
+            $publicaciones[] = $objeto;
+        }
+        return response()->json($publicaciones);
+    }
+
+    public function getImage($imagen){
+        return 'http://localhost:8000/img/'.$imagen;
     }
 
     /**
@@ -42,6 +61,15 @@ class PublicacionesController extends Controller
         $publicacion->desc_objetoC = $request->input('desc_objetoC');
         $publicacion->desc_detallada = $request->input('desc_detallada');
         $publicacion->lugar = $request->input('lugar');
+
+        if($request->hasFile('imagen')){
+            $file = $request->file('imagen');
+            $filename = $file->getClientOriginalName();
+            $picture = date('d-m-y h.i.s A').'-'.$filename;
+            $publicacion->foto_objeto = $picture;
+            $file->move(public_path('img'), $picture);
+        }
+
         $publicacion->save();
         return '{"msg": "created"}';
     }
