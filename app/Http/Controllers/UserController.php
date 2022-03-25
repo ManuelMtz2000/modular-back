@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -38,9 +39,16 @@ class UserController extends Controller
         $user = new User();
         $user->nombre = $request->input('nombre');
         $user->correo = $request->input('correo');
-        $user->contrasenia = $request->input('contrasenia');
+        $user->contrasenia = Hash::make($request->input('contrasenia'));
         $user->tipo_usuario_id = 1;
         $user->curp = $request->input('curp');
+        if($request->hasFile('imagen')){
+            $file = $request->file('imagen');
+            $filename = $file->getClientOriginalName();
+            $picture = date('d-m-y h.i.s A').'-'.$filename;
+            $user->foto_identificacion = $picture;
+            $file->move(storage_path('identificaciones'), $picture);
+        }
         $user->save();
         return '{"msg": "created"}';
     }

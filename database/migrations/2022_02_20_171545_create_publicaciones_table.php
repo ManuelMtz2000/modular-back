@@ -15,13 +15,16 @@ return new class extends Migration
     {
         Schema::create('publicaciones', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('tipo_publicacion_id');
+            $table->string('tipo_publicacion');
+            $table->unsignedBigInteger('autorPublicacion');
             $table->string('mostrar_contacto');
             $table->string('foto_objeto');
             $table->string('desc_objetoC');
             $table->string('desc_detallada');
             $table->string('lugar');
-            $table->foreign('tipo_publicacion_id')->references('id')->on('categorias');
+            $table->unsignedBigInteger('statusPublicacion');
+            $table->foreign('autorPublicacion')->references('id')->on('users');
+            $table->foreign('statusPublicacion')->references('id')->on('status_publicacion');
             $table->timestamps();
         });
     }

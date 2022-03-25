@@ -11,11 +11,13 @@ class Publicacion extends Model
     protected $fillable = [
         "id",
         "tipo_publicacion_id",
+        "autorPublicacion",
         "mostrar_contacto",
         "foto_objeto",
         "desc_objetoC",
         "desc_detallada",
         "lugar",
+        "statusPublicacion"
     ];
     use HasFactory;
 }

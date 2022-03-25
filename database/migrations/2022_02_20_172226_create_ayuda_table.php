@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('ayuda', function (Blueprint $table) {
             $table->string('preguntas_frecuentes');
-            $table->string('fotos_ejemplo');
+            $table->string('fotos_ejemplo')->nullable();
+            $table->string('isVideo');
             $table->string('videos');
             $table->timestamps();
         });

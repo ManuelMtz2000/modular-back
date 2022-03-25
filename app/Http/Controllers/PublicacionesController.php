@@ -70,6 +70,8 @@ class PublicacionesController extends Controller
             $file->move(public_path('img'), $picture);
         }
 
+        $publicacion->statusPublicacion = 1;
+        $publicacion->autorPublicacion = 1;
         $publicacion->save();
         return '{"msg": "created"}';
     }

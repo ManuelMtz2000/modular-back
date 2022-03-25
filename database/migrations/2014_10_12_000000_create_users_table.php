@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('nombre');
             $table->string('correo')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('contrasenia', 16);
+            $table->string('contrasenia');
             $table->string('foto_identificacion');
             $table->unsignedBigInteger('tipo_usuario_id');
             $table->string('curp', 18);
