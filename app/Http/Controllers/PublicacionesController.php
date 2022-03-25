@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Publicacion;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PublicacionesController extends Controller
@@ -34,6 +35,11 @@ class PublicacionesController extends Controller
 
     public function getImage($imagen){
         return 'http://localhost:8000/img/'.$imagen;
+    }
+
+    public function getNombre($id){
+        $user = User::where('id', $id)->first();
+        return $user->nombre;
     }
 
     /**
@@ -82,9 +88,22 @@ class PublicacionesController extends Controller
      * @param  \App\Models\Publicacion  $publicacion
      * @return \Illuminate\Http\Response
      */
-    public function show(Publicacion $publicacion)
+    public function show($id)
     {
-        //
+        $publicacionColeccion = Publicacion::where('id', $id)->first();
+        $objeto = [];
+            $objeto = [
+                "id" => $publicacionColeccion->id,
+                "tipoPublicacion" => $publicacionColeccion->tipo_publicacion,
+                "autorPublicacion" => self::getNombre($publicacionColeccion->autorPublicacion),
+                "mostrarContacto" => $publicacionColeccion->mostrar_contacto,
+                "fotoObjeto" => self::getImage($publicacionColeccion->foto_objeto),
+                "descObjetoC" => $publicacionColeccion->desc_objetoC,
+                "descDetallada" => $publicacionColeccion->desc_detallada,
+                "lugar" => $publicacionColeccion->lugar,
+                "statusPublicacion" => $publicacionColeccion->statusPublicacion
+            ];
+        return response()->json($objeto);
     }
 
     /**
