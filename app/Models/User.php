@@ -23,7 +23,8 @@ class User extends Authenticatable
         'contrasenia',
         'foto_identificacion',
         'tipo_usuario_id',
-        'curp'
+        'curp',
+        'datosContacto'
     ];
 
     /**

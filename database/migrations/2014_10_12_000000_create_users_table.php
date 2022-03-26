@@ -22,10 +22,10 @@ return new class extends Migration
             $table->string('foto_identificacion');
             $table->unsignedBigInteger('tipo_usuario_id');
             $table->string('curp', 18);
+            $table->text('datosContacto')->nullable();
             $table->rememberToken();
             $table->foreign('tipo_usuario_id')->references('id')->on('tipo_usuario');
             $table->timestamps();
-            //php">php artisan migrate --path=/database/migrations/my_migration.php
 
         });
     }

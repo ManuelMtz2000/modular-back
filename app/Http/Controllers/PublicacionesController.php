@@ -22,7 +22,7 @@ class PublicacionesController extends Controller
             $objeto = [
                 "id" => $p->id,
                 "tipoPublicacion" => $p->tipo_publicacion,
-                "mostrar_contacto" => $p->mostrar_contacto,
+                "mostrarContacto" => self::getDatos($p->autorPublicacion, $p->mostrar_contacto),
                 "fotoObjeto" => self::getImage($p->foto_objeto),
                 "descObjetoC" => $p->desc_objetoC,
                 "descDetallada" => $p->desc_detallada,
@@ -40,6 +40,14 @@ class PublicacionesController extends Controller
     public function getNombre($id){
         $user = User::where('id', $id)->first();
         return $user->nombre;
+    }
+
+    public function getDatos($id, $respuesta){
+        $user = User::where('id', $id)->first();
+        if($respuesta == 'Si'){
+            return $user->datosContacto;
+        }
+        return null;
     }
 
     /**
@@ -96,7 +104,7 @@ class PublicacionesController extends Controller
                 "id" => $publicacionColeccion->id,
                 "tipoPublicacion" => $publicacionColeccion->tipo_publicacion,
                 "autorPublicacion" => self::getNombre($publicacionColeccion->autorPublicacion),
-                "mostrarContacto" => $publicacionColeccion->mostrar_contacto,
+                "mostrarContacto" => self::getDatos($publicacionColeccion->id, $publicacionColeccion->mostrar_contacto),
                 "fotoObjeto" => self::getImage($publicacionColeccion->foto_objeto),
                 "descObjetoC" => $publicacionColeccion->desc_objetoC,
                 "descDetallada" => $publicacionColeccion->desc_detallada,

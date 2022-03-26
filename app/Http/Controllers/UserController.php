@@ -42,6 +42,7 @@ class UserController extends Controller
         $user->contrasenia = Hash::make($request->input('contrasenia'));
         $user->tipo_usuario_id = 1;
         $user->curp = $request->input('curp');
+        $user->datosContacto = $request->input('datosContacto');
         if($request->hasFile('imagen')){
             $file = $request->file('imagen');
             $filename = $file->getClientOriginalName();
@@ -50,7 +51,24 @@ class UserController extends Controller
             $file->move(storage_path('identificaciones'), $picture);
         }
         $user->save();
-        return '{"msg": "created"}';
+        return response()->json([
+            'user' => $user,
+            'token' => $user->createToken('Token')->plainTextToken
+        ], 200);
+    }
+
+    public function login(Request $request){
+        $user = User::where('correo', $request->input('correo'))->first();
+
+        if(!Hash::check($request->input('contrasenia'), $user->contrasenia)){
+            return response()->json([
+                'msg' => 'Datos incorrectos'
+            ], 401);
+        }
+        return response()->json([
+            'user' => $user,
+            'token' => $user->createToken('Token')->plainTextToken
+        ]);
     }
 
     /**
