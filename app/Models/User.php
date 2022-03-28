@@ -22,6 +22,7 @@ class User extends Authenticatable
         'correo',
         'contrasenia',
         'foto_identificacion',
+        'foto_perfil',
         'tipo_usuario_id',
         'curp',
         'datosContacto'

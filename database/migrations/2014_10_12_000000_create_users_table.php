@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('contrasenia');
             $table->string('foto_identificacion');
+            $table->string('foto_perfil')->nullable();
             $table->unsignedBigInteger('tipo_usuario_id');
             $table->string('curp', 18);
             $table->text('datosContacto')->nullable();

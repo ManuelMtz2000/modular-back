@@ -50,6 +50,13 @@ class UserController extends Controller
             $user->foto_identificacion = $picture;
             $file->move(storage_path('identificaciones'), $picture);
         }
+        if($request->hasFile('perfil')){
+            $file = $request->file('perfil');
+            $filename = $file->getClientOriginalName();
+            $picture = date('d-m-y h.i.s A').'-'.$filename;
+            $user->foto_perfil = $picture;
+            $file->move(storage_path('fotos_p'), $picture);
+        }
         $user->save();
         return response()->json([
             'user' => $user,
@@ -59,16 +66,26 @@ class UserController extends Controller
 
     public function login(Request $request){
         $user = User::where('correo', $request->input('correo'))->first();
-
+        $objeto = [
+            "id" => $user->id,
+            "nombre" => $user->nombre,
+            "correo" => $user->correo,
+            "fotoP" => self::getPerfil($user->id)
+        ];
         if(!Hash::check($request->input('contrasenia'), $user->contrasenia)){
             return response()->json([
                 'msg' => 'Datos incorrectos'
             ], 401);
         }
         return response()->json([
-            'user' => $user,
+            'user' => $objeto,
             'token' => $user->createToken('Token')->plainTextToken
         ]);
+    }
+
+    public function getPerfil($id){
+        $user = User::where('id', $id)->first();
+        return 'http://localhost:8000/img/fotos_p/'.$user->foto_perfil;
     }
 
     /**
