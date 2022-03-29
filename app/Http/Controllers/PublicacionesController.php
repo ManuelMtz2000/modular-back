@@ -74,6 +74,7 @@ class PublicacionesController extends Controller
         $publicacion->foto_objeto = null;
         $publicacion->desc_objetoC = $request->input('desc_objetoC');
         $publicacion->desc_detallada = $request->input('desc_detallada');
+        $publicacion->autorPublicacion = 3;
         $publicacion->lugar = $request->input('lugar');
 
         if($request->hasFile('imagen')){
@@ -85,7 +86,6 @@ class PublicacionesController extends Controller
         }
 
         $publicacion->statusPublicacion = 1;
-        $publicacion->autorPublicacion = 1;
         $publicacion->save();
         return '{"msg": "created"}';
     }
@@ -104,7 +104,7 @@ class PublicacionesController extends Controller
                 "id" => $publicacionColeccion->id,
                 "tipoPublicacion" => $publicacionColeccion->tipo_publicacion,
                 "autorPublicacion" => self::getNombre($publicacionColeccion->autorPublicacion),
-                "mostrarContacto" => self::getDatos($publicacionColeccion->id, $publicacionColeccion->mostrar_contacto),
+                "mostrarContacto" => self::getDatos($publicacionColeccion->autorPublicacion, $publicacionColeccion->mostrar_contacto),
                 "fotoObjeto" => self::getImage($publicacionColeccion->foto_objeto),
                 "descObjetoC" => $publicacionColeccion->desc_objetoC,
                 "descDetallada" => $publicacionColeccion->desc_detallada,

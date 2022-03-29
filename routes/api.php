@@ -21,13 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('/auth/login', [UserController::class, 'login']);
-
-/*Route::get('/fotos_p/{filename}', function ($filename)
-{
-    $file = \Illuminate\Support\Facades\Storage::get("fotos_p/$filename");
-    dd($file);
-    return response($file, 200)->header('Content-Type', 'image/jpeg');
-});*/
+Route::put('/users/update/contrasenia/{id}', [UserController::class, 'nuevaContra']);
 
 Route::resource('users', UserController::class);
 Route::resource('publicaciones', PublicacionesController::class);

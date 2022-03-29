@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -94,9 +95,17 @@ class UserController extends Controller
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user)
+    public function show($user)
     {
-        //
+        $userC = User::where('id', $user)->first();
+        $objeto = [
+            "id" => $userC->id,
+            "nombre" => $userC->nombre,
+            "datosContacto" => $userC->datosContacto,
+            "fotoP" => self::getPerfil($userC->id)
+        ];
+        
+        return response()->json($objeto, 200);
     }
 
     /**
@@ -117,9 +126,20 @@ class UserController extends Controller
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, $user)
     {
-        //
+        
+    }
+
+    public function nuevaContra(Request $request, $id){
+        $user = User::where('id', $id)->first();
+        if(Hash::check($request->input('contraOld'), $user->contrasenia)){
+            DB::table('users')->where('id', $id)->update([
+                "contrasenia" => Hash::make($request->input('contraNew'))
+            ]);
+        } else {
+            abort(404);
+        }
     }
 
     /**
