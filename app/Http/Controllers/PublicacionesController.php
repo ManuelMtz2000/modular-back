@@ -22,6 +22,8 @@ class PublicacionesController extends Controller
             $objeto = [
                 "id" => $p->id,
                 "tipoPublicacion" => $p->tipo_publicacion,
+                "autorPublicacion" => self::getNombre($p->autorPublicacion),
+                "fotoUsuario" => self::getPerfil($p->autorPublicacion),
                 "mostrarContacto" => self::getDatos($p->autorPublicacion, $p->mostrar_contacto),
                 "fotoObjeto" => self::getImage($p->foto_objeto),
                 "descObjetoC" => $p->desc_objetoC,
@@ -40,6 +42,11 @@ class PublicacionesController extends Controller
     public function getNombre($id){
         $user = User::where('id', $id)->first();
         return $user->nombre;
+    }
+
+    public function getPerfil($id){
+        $user = User::where('id', $id)->first();
+        return 'http://localhost:8000/img/fotos_p/'.$user->foto_perfil;
     }
 
     public function getDatos($id, $respuesta){
@@ -74,7 +81,7 @@ class PublicacionesController extends Controller
         $publicacion->foto_objeto = null;
         $publicacion->desc_objetoC = $request->input('desc_objetoC');
         $publicacion->desc_detallada = $request->input('desc_detallada');
-        $publicacion->autorPublicacion = 3;
+        $publicacion->autorPublicacion = $request->input('id');
         $publicacion->lugar = $request->input('lugar');
 
         if($request->hasFile('imagen')){
@@ -146,5 +153,28 @@ class PublicacionesController extends Controller
     public function destroy(Publicacion $publicacion)
     {
         //
+    }
+
+    public function getByUser($id){
+        $publicaciones = Publicacion::where('autorPublicacion', $id)->get();
+        $objeto = [];
+        $arreglo = [];
+        foreach($publicaciones as $p){
+            $objeto = [
+                "id" => $p->id,
+                "tipoPublicacion" => $p->tipo_publicacion,
+                "mostrarContacto" => $p->mostrar_contacto,
+                "fotoObjeto" => self::getImage($p->foto_objeto),
+                "descObjetoC" => $p->desc_objetoC,
+                "descDetallada" => $p->desc_detallada,
+                "autorPublicacion" => $p->autorPublicacion,
+                "lugar" => $p->lugar,
+                "statusPublicacion" => $p->statusPublicacion
+            ];
+            
+            $arreglo[] = $objeto;
+        }
+
+        return response()->json($arreglo, 200);
     }
 }

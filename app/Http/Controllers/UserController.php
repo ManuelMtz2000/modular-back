@@ -142,6 +142,12 @@ class UserController extends Controller
         }
     }
 
+    public function editDatos(Request $request, $id){
+        DB::table('users')->where('id', $id)->update([
+            "datosContacto" => $request->input('datos')
+        ]);
+    }
+
     /**
      * Remove the specified resource from storage.
      *
