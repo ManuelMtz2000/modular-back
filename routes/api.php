@@ -24,6 +24,7 @@ Route::post('/auth/login', [UserController::class, 'login']);
 Route::put('/users/update/contrasenia/{id}', [UserController::class, 'nuevaContra']);
 Route::put('/users/update/datos/{id}', [UserController::class, 'editDatos']);
 Route::get('/publicaciones/get/{id}', [PublicacionesController::class, 'getByUser']);
+Route::post('/publicaciones/reportar', [PublicacionesController::class, 'reportar']);
 
 Route::resource('users', UserController::class);
 Route::resource('publicaciones', PublicacionesController::class);

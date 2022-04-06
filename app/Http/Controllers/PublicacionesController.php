@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Publicacion;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PublicacionesController extends Controller
 {
@@ -121,12 +122,16 @@ class PublicacionesController extends Controller
         return response()->json($objeto);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Publicacion  $publicacion
-     * @return \Illuminate\Http\Response
-     */
+    public function reportar(Request $request){
+        $publicacion = Publicacion::where('id', $request->input('id'))->first();
+        DB::table('reportes')->insert([
+            "id_usuario_reporta" => $request->input('idReporta'),
+            "id_usuario_reportado" => $publicacion->autorPublicacion,
+            "id_publicacion" => $publicacion->id,
+            "descripcion" => $request->input('descripcion')
+        ]);
+    }
+
     public function edit(Publicacion $publicacion)
     {
         //
