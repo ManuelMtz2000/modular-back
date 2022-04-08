@@ -21,10 +21,12 @@ return new class extends Migration
             $table->string('foto_objeto');
             $table->string('desc_objetoC');
             $table->string('desc_detallada');
+            $table->unsignedBigInteger('categoriasPublicacion');
             $table->string('lugar');
             $table->unsignedBigInteger('statusPublicacion');
             $table->foreign('autorPublicacion')->references('id')->on('users');
             $table->foreign('statusPublicacion')->references('id')->on('status_publicacion');
+            $table->foreign('categoriasPublicacion')->references('id')->on('categorias');
             $table->timestamps();
         });
     }

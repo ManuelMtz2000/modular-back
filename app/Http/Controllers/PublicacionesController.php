@@ -84,7 +84,7 @@ class PublicacionesController extends Controller
         $publicacion->desc_detallada = $request->input('desc_detallada');
         $publicacion->autorPublicacion = $request->input('id');
         $publicacion->lugar = $request->input('lugar');
-
+        $publicacion->categoriasPublicacion = $request->input('categoriasPublicacion');
         if($request->hasFile('imagen')){
             $file = $request->file('imagen');
             $filename = $file->getClientOriginalName();

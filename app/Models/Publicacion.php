@@ -16,6 +16,7 @@ class Publicacion extends Model
         "foto_objeto",
         "desc_objetoC",
         "desc_detallada",
+        "categoriasPublicacion",
         "lugar",
         "statusPublicacion"
     ];
