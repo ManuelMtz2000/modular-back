@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -46,17 +47,16 @@ class UserController extends Controller
         $user->datosContacto = $request->input('datosContacto');
         if($request->hasFile('imagen')){
             $file = $request->file('imagen');
-            $filename = $file->getClientOriginalName();
-            $picture = date('d-m-y h.i.s A').'-'.$filename;
+            $filename = $file->getClientOriginalExtension();
+            $picture = date('d-m-y_h.i.s_A').'-'.Str::random(8).'.'.$filename;
             $user->foto_identificacion = $picture;
-            $file->move(storage_path('identificaciones'), $picture);
+            $file->move(public_path('identificaciones'), $picture);
         }
         if($request->hasFile('perfil')){
             $file = $request->file('perfil');
-            $filename = $file->getClientOriginalName();
-            $picture = date('d-m-y h.i.s A').'-'.$filename;
+            $picture = date('d-m-y_h.i.s_A').'-'.Str::random(8).'.'.$filename;
             $user->foto_perfil = $picture;
-            $file->move(storage_path('fotos_p'), $picture);
+            $file->move(public_path('img/fotos_p'), $picture);
         }
         $user->save();
         return response()->json([
@@ -86,7 +86,7 @@ class UserController extends Controller
 
     public function getPerfil($id){
         $user = User::where('id', $id)->first();
-        return 'http://localhost:8000/img/fotos_p/'.$user->foto_perfil;
+        return 'http://192.168.193.13:8000/img/fotos_p/'.$user->foto_perfil;
     }
 
     /**

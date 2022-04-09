@@ -37,7 +37,7 @@ class PublicacionesController extends Controller
     }
 
     public function getImage($imagen){
-        return 'http://localhost:8000/img/'.$imagen;
+        return 'http://192.168.193.13:8000/img/'.$imagen;
     }
 
     public function getNombre($id){
@@ -47,7 +47,7 @@ class PublicacionesController extends Controller
 
     public function getPerfil($id){
         $user = User::where('id', $id)->first();
-        return 'http://localhost:8000/img/fotos_p/'.$user->foto_perfil;
+        return 'http://192.168.193.13:8000/img/fotos_p/'.$user->foto_perfil;
     }
 
     public function getDatos($id, $respuesta){
