@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\EnvioCorreo;
 use App\Models\Publicacion;
 use App\Models\User;
+use App\Models\UsuarioPublicacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class PublicacionesController extends Controller
 {
@@ -56,6 +59,26 @@ class PublicacionesController extends Controller
             return $user->datosContacto;
         }
         return null;
+    }
+
+    public function reclamar(Request $request){
+        $p = Publicacion::where('id', $request->input('publicacion'))->first();
+        $publicacion = new UsuarioPublicacion();
+        $publicacion->id_usuarioP = $p->autorPublicacion;
+        $publicacion->id_usuarioR = $request->input('id');
+        $publicacion->id_publicacion = $p->id;
+        if($request->input('mensaje') == 'undefined'){
+            $publicacion->mensaje = null;
+        } else {
+            $publicacion->mensaje = $request->input('mensaje');
+        }
+        $publicacion->save();
+        self::correo($publicacion);
+    }
+
+    public function correo(UsuarioPublicacion $publicacion){
+        $user = User::where('id', $publicacion->id_usuarioP)->first();
+        Mail::to($user->correo)->send(new EnvioCorreo($publicacion));
     }
 
     /**

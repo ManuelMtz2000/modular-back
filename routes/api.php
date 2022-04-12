@@ -25,6 +25,7 @@ Route::put('/users/update/contrasenia/{id}', [UserController::class, 'nuevaContr
 Route::put('/users/update/datos/{id}', [UserController::class, 'editDatos']);
 Route::get('/publicaciones/get/{id}', [PublicacionesController::class, 'getByUser']);
 Route::post('/publicaciones/reportar', [PublicacionesController::class, 'reportar']);
+Route::post('/publicaciones/reclamar', [PublicacionesController::class, 'reclamar']);
 
 Route::resource('users', UserController::class);
 Route::resource('publicaciones', PublicacionesController::class);
