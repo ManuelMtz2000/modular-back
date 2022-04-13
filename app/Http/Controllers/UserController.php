@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -54,6 +55,7 @@ class UserController extends Controller
         }
         if($request->hasFile('perfil')){
             $file = $request->file('perfil');
+            $filename = $file->getClientOriginalExtension();
             $picture = date('d-m-y_h.i.s_A').'-'.Str::random(8).'.'.$filename;
             $user->foto_perfil = $picture;
             $file->move(public_path('img/fotos_p'), $picture);
@@ -146,6 +148,20 @@ class UserController extends Controller
         DB::table('users')->where('id', $id)->update([
             "datosContacto" => $request->input('datos')
         ]);
+    }
+
+    public function editFoto(Request $request, $id){
+        $user = User::where('id', $id)->first();
+        File::delete(public_path('img/fotos_p/'.$user->foto_perfil));
+        if($request->hasFile('imagen')){
+            $file = $request->file('imagen');
+            $filename = $file->getClientOriginalExtension();
+            $picture = date('d-m-y_h.i.s_A').'-'.Str::random(8).'.'.$filename;
+            DB::table('users')->where('id', $id)->update([
+                "foto_perfil" => $picture
+            ]);
+            $file->move(public_path('img/fotos_p'), $picture);
+        }
     }
 
     /**

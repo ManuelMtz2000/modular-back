@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\EnvioCorreo;
+use App\Models\Categoria;
 use App\Models\Publicacion;
 use App\Models\User;
 use App\Models\UsuarioPublicacion;
@@ -26,6 +27,7 @@ class PublicacionesController extends Controller
             $objeto = [
                 "id" => $p->id,
                 "tipoPublicacion" => $p->tipo_publicacion,
+                "categoriasPublicacion" => self::categoria($p->categoriasPublicacion),
                 "autorPublicacion" => self::getNombre($p->autorPublicacion),
                 "fotoUsuario" => self::getPerfil($p->autorPublicacion),
                 "mostrarContacto" => self::getDatos($p->autorPublicacion, $p->mostrar_contacto),
@@ -37,6 +39,11 @@ class PublicacionesController extends Controller
             $publicaciones[] = $objeto;
         }
         return response()->json($publicaciones);
+    }
+
+    public function categoria($categoriasPublicacion){
+        $categoria = Categoria::where('id', $categoriasPublicacion)->first();
+        return $categoria->nombre_categoria;
     }
 
     public function getImage($imagen){

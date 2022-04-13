@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/auth/login', [UserController::class, 'login']);
 Route::put('/users/update/contrasenia/{id}', [UserController::class, 'nuevaContra']);
 Route::put('/users/update/datos/{id}', [UserController::class, 'editDatos']);
+Route::put('/users/update/foto/{id}', [UserController::class, 'editFoto']);
 Route::get('/publicaciones/get/{id}', [PublicacionesController::class, 'getByUser']);
 Route::post('/publicaciones/reportar', [PublicacionesController::class, 'reportar']);
 Route::post('/publicaciones/reclamar', [PublicacionesController::class, 'reclamar']);
