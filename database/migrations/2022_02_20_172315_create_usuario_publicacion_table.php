@@ -19,6 +19,8 @@ return new class extends Migration
             $table->unsignedBigInteger('id_usuarioP');
             $table->unsignedBigInteger('id_usuarioR');
             $table->unsignedBigInteger('id_status');
+            $table->string('mensaje');
+            $table->string('folio');
             $table->foreign('id_publicacion')->references('id')->on('publicaciones');
             $table->foreign('id_usuarioP')->references('id')->on('users');
             $table->foreign('id_usuarioR')->references('id')->on('users');

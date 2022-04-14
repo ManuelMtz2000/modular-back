@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\EnvioCorreo;
+use App\Mail\ReclamarCorreo;
 use App\Models\Categoria;
 use App\Models\Publicacion;
 use App\Models\User;
@@ -10,6 +11,7 @@ use App\Models\UsuarioPublicacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class PublicacionesController extends Controller
 {
@@ -20,7 +22,7 @@ class PublicacionesController extends Controller
      */
     public function index()
     {
-        $publicacionesColeccion = Publicacion::all();
+        $publicacionesColeccion = Publicacion::where('statusPublicacion', 1)->get();
         $objeto = [];
         $publicaciones = [];
         foreach($publicacionesColeccion as $p){
@@ -69,23 +71,47 @@ class PublicacionesController extends Controller
     }
 
     public function reclamar(Request $request){
-        $p = Publicacion::where('id', $request->input('publicacion'))->first();
-        $publicacion = new UsuarioPublicacion();
-        $publicacion->id_usuarioP = $p->autorPublicacion;
-        $publicacion->id_usuarioR = $request->input('id');
-        $publicacion->id_publicacion = $p->id;
-        if($request->input('mensaje') == 'undefined'){
-            $publicacion->mensaje = null;
+        if(!UsuarioPublicacion::where('id_usuarioR', $request->input('id'))->where('id_publicacion', $request->input('publicacion'))->first())
+        {
+            $p = Publicacion::where('id', $request->input('publicacion'))->first();
+            $publicacion = new UsuarioPublicacion();
+            $publicacion->id_usuarioP = $p->autorPublicacion;
+            $publicacion->id_usuarioR = $request->input('id');
+            $publicacion->id_publicacion = $p->id;
+            if($request->input('mensaje') == 'undefined'){
+                $publicacion->mensaje = null;
+            } else {
+                $publicacion->mensaje = $request->input('mensaje');
+            }
+            $publicacion->folio = Str::random(5);
+            $publicacion->save();
+            self::correo($publicacion);
         } else {
-            $publicacion->mensaje = $request->input('mensaje');
+            abort(404);
         }
-        $publicacion->save();
-        self::correo($publicacion);
     }
 
     public function correo(UsuarioPublicacion $publicacion){
         $user = User::where('id', $publicacion->id_usuarioP)->first();
+        $user2 = User::where('id', $publicacion->id_usuarioR)->first();
+        Mail::to($user2->correo)->send(new ReclamarCorreo($publicacion));
         Mail::to($user->correo)->send(new EnvioCorreo($publicacion));
+    }
+
+    public function cerrarPublicacion(Request $request, $id){
+        $publicacion = UsuarioPublicacion::where('id_publicacion', $id)->where('folio', $request->input('folio'))->first();
+        $publicacion2 = Publicacion::where('id', $id)->first();
+        if($publicacion){
+            if($publicacion2->statusPublicacion == 1){
+                DB::table('publicaciones')->where('id', $id)->update([
+                    "statusPublicacion" => 2
+                ]);
+            } else {
+                abort(404);
+            }
+        } else {
+            abort(404);
+        }
     }
 
     /**
@@ -192,8 +218,14 @@ class PublicacionesController extends Controller
 
     public function getByUser($id){
         $publicaciones = Publicacion::where('autorPublicacion', $id)->get();
+        $publicacionesR = Publicacion::join('usuario_publicacion', 'publicaciones.id', '=', 'usuario_publicacion.id_publicacion')
+        ->select('publicaciones.*', 'usuario_publicacion.mensaje', 'usuario_publicacion.id_usuarioR')
+        ->where('usuario_publicacion.id_usuarioR', $id)
+        ->get();
         $objeto = [];
+        $objeto2 = [];
         $arreglo = [];
+        $arreglo2 = [];
         foreach($publicaciones as $p){
             $objeto = [
                 "id" => $p->id,
@@ -206,10 +238,24 @@ class PublicacionesController extends Controller
                 "lugar" => $p->lugar,
                 "statusPublicacion" => $p->statusPublicacion
             ];
-            
             $arreglo[] = $objeto;
         }
-
-        return response()->json($arreglo, 200);
+        foreach($publicacionesR as $p){
+            $objeto2 = [
+                "id" => $p->id,
+                "tipoPublicacion" => $p->tipo_publicacion,
+                "mostrarContacto" => $p->mostrar_contacto,
+                "fotoObjeto" => self::getImage($p->foto_objeto),
+                "descObjetoC" => $p->desc_objetoC,
+                "descDetallada" => $p->desc_detallada,
+                "autorPublicacion" => $p->autorPublicacion,
+                "lugar" => $p->lugar,
+                "statusPublicacion" => $p->statusPublicacion,
+                "mensaje" => $p->mensaje,
+                "idUsuarioR" => self::getNombre($p->id_usuarioR)
+            ];
+            $arreglo2[] = $objeto2;
+        }
+        return response()->json([$arreglo, $arreglo2], 200);
     }
 }

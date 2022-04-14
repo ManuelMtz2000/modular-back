@@ -15,6 +15,7 @@ class UsuarioPublicacion extends Model
         "id_usuarioP",
         "id_usuarioR",
         "mensaje",
+        "folio",
         "created_at",
         "updated_at"
     ];
