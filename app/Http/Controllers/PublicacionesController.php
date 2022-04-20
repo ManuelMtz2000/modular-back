@@ -9,6 +9,7 @@ use App\Models\Publicacion;
 use App\Models\User;
 use App\Models\UsuarioPublicacion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -68,6 +69,11 @@ class PublicacionesController extends Controller
             return $user->datosContacto;
         }
         return null;
+    }
+
+    public function prueba(){
+        Storage::disk('local')->append('extravios.pl', PHP_EOL.'Contents', null);
+        return "termino";
     }
 
     public function reclamar(Request $request){
@@ -148,9 +154,14 @@ class PublicacionesController extends Controller
             $publicacion->foto_objeto = $picture;
             $file->move(public_path('img'), $picture);
         }
-
         $publicacion->statusPublicacion = 1;
         $publicacion->save();
+        $etiquetas = json_decode($request->input('etiquetas'));
+        Storage::disk('local')->append('extravios.pl', 'publicacion('.$publicacion->id.').'.PHP_EOL, null);
+        foreach($etiquetas as $e){
+            Storage::disk('local')->append('extravios.pl', PHP_EOL.'caracteristica('.$e.').', null);
+            Storage::disk('local')->append('extravios.pl', PHP_EOL.'etiquetas('.$publicacion->id.', '.$e.').', null);
+        }
         return '{"msg": "created"}';
     }
 

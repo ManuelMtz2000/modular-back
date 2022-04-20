@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PersonalAccess;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
@@ -83,6 +84,24 @@ class UserController extends Controller
         return response()->json([
             'user' => $objeto,
             'token' => $user->createToken('Token')->plainTextToken
+        ]);
+    }
+
+    public function loginSiiau(Request $request){
+        if(!Hash::check($request->input('contra2'), $request->input('contra1'))){
+            return response()->json([
+                'msg' => 'Datos incorrectos'
+            ], 401);
+        }
+        $token = new PersonalAccess();
+        $token->tokenable_type = 'App\Models\User';
+        $token->tokenable_id = $request->input('codigo');
+        $token->token = Str::random(64);
+        $token->name = 'Token';
+        $token->abilities = '["*"]';
+        $token->save();
+        return response()->json([
+            'token' => $token->tokenable_id
         ]);
     }
 

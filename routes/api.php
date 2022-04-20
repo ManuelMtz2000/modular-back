@@ -21,6 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('/auth/login', [UserController::class, 'login']);
+Route::post('/auth/login/siiau', [UserController::class, 'loginSiiau']);
 Route::put('/users/update/contrasenia/{id}', [UserController::class, 'nuevaContra']);
 Route::put('/users/update/datos/{id}', [UserController::class, 'editDatos']);
 Route::put('/users/update/foto/{id}', [UserController::class, 'editFoto']);
@@ -28,6 +29,8 @@ Route::get('/publicaciones/get/{id}', [PublicacionesController::class, 'getByUse
 Route::post('/publicaciones/reportar', [PublicacionesController::class, 'reportar']);
 Route::post('/publicaciones/reclamar', [PublicacionesController::class, 'reclamar']);
 Route::put('/publicaciones/cerrar/{id}', [PublicacionesController::class, 'cerrarPublicacion']);
+
+Route::get('prueba', [PublicacionesController::class, 'prueba']);
 
 Route::resource('users', UserController::class);
 Route::resource('publicaciones', PublicacionesController::class);
