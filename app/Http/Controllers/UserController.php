@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\Verificar as MailVerificar;
 use App\Models\PersonalAccess;
 use App\Models\User;
+use App\Models\Verificar;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -62,10 +66,42 @@ class UserController extends Controller
             $file->move(public_path('img/fotos_p'), $picture);
         }
         $user->save();
+        $verificar = new Verificar();
+        $verificar->id_usuario = $user->id;
+        $verificar->codigo = Str::random(6);
+        $verificar->save();
+        Mail::to($request->input('correo'))->send(new MailVerificar($verificar));
+        $objeto = [
+            "id" => $user->id,
+            "nombre" => $user->nombre,
+            "correo" => $user->correo,
+            "verificado" => $user->email_verified_at,
+            "fotoP" => self::getPerfil($user->id)
+        ];
         return response()->json([
-            'user' => $user,
+            'user' => $objeto,
             'token' => $user->createToken('Token')->plainTextToken
         ], 200);
+    }
+
+    public function verificar(Request $request, $id){
+        $verificar = Verificar::where('id_usuario', $id)->where('codigo', $request->input('codigo'))->get();
+        if(count($verificar) > 0){
+            DB::table('users')->where('id', $id)->update(
+                ["email_verified_at" => Carbon::now()]
+            );
+        } else {
+            return abort(404);
+        }
+        $user = User::where('id', $id)->first();
+        $objeto = [
+            "id" => $user->id,
+            "nombre" => $user->nombre,
+            "correo" => $user->correo,
+            "verificado" => $user->email_verified_at,
+            "fotoP" => self::getPerfil($user->id)
+        ];
+        return response()->json($objeto);
     }
 
     public function login(Request $request){
@@ -74,6 +110,7 @@ class UserController extends Controller
             "id" => $user->id,
             "nombre" => $user->nombre,
             "correo" => $user->correo,
+            "verificado" => $user->email_verified_at,
             "fotoP" => self::getPerfil($user->id)
         ];
         if(!Hash::check($request->input('contrasenia'), $user->contrasenia)){

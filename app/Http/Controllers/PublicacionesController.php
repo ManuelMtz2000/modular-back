@@ -157,9 +157,7 @@ class PublicacionesController extends Controller
         $publicacion->statusPublicacion = 1;
         $publicacion->save();
         $etiquetas = json_decode($request->input('etiquetas'));
-        Storage::disk('local')->append('extravios.pl', 'publicacion('.$publicacion->id.').'.PHP_EOL, null);
         foreach($etiquetas as $e){
-            Storage::disk('local')->append('extravios.pl', PHP_EOL.'caracteristica('.$e.').', null);
             Storage::disk('local')->append('extravios.pl', PHP_EOL.'etiquetas('.$publicacion->id.', '.$e.').', null);
         }
         return '{"msg": "created"}';
@@ -197,6 +195,30 @@ class PublicacionesController extends Controller
             "id_publicacion" => $publicacion->id,
             "descripcion" => $request->input('descripcion')
         ]);
+    }
+
+    public function search(Request $request){
+        $coleccion = Publicacion::where('id', $request->input('id'))->get();
+        $objeto = [];
+        $publicaciones = [];
+        if(count($coleccion) > 0){
+            foreach($coleccion as $c){
+                $objeto = [
+                    "id" => $c->id,
+                    "tipoPublicacion" => $c->tipo_publicacion,
+                    "autorPublicacion" => self::getNombre($c->autorPublicacion),
+                    "mostrarContacto" => self::getDatos($c->autorPublicacion, $c->mostrar_contacto),
+                    "fotoObjeto" => self::getImage($c->foto_objeto),
+                    "descObjetoC" => $c->desc_objetoC,
+                    "descDetallada" => $c->desc_detallada,
+                    "lugar" => $c->lugar,
+                    "statusPublicacion" => $c->statusPublicacion
+                ];
+                $publicaciones[] = $objeto;
+            }
+            return response()->json($publicaciones);
+        }
+        return abort(404);
     }
 
     public function edit(Publicacion $publicacion)

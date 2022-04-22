@@ -17,4 +17,5 @@ class PersonalAccess extends Model
         "token",
         "abilities",
     ];
+    public $timestamps = false;
 }
