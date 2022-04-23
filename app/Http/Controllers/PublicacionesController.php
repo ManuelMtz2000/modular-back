@@ -198,7 +198,17 @@ class PublicacionesController extends Controller
     }
 
     public function search(Request $request){
-        $coleccion = Publicacion::where('id', $request->input('id'))->get();
+        $output = `swipl -s C:\Users\Manue\OneDrive\Escritorio\Modular\\extravios-cucei-back\storage\app\\extravios.pl -g "buscar({$request->input('busqueda')})." -t halt.`;
+        $arreglo = str_split($output);
+        $coleccion = Publicacion::where('desc_objetoC', 'like', '%'.$request->input('busqueda').'%')
+            ->orWhere('desc_detallada', 'like', '%'.$request->input('busqueda').'%')
+            ->orWhere('lugar', 'like', '%'.$request->input('busqueda').'%')
+            ->orWhere(function ($query) use ( $arreglo ) {
+                foreach($arreglo as $a) {
+                    $query->orWhere('id', $a);
+                }
+            })
+            ->get();
         $objeto = [];
         $publicaciones = [];
         if(count($coleccion) > 0){
