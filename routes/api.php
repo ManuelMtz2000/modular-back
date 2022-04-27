@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/auth/login', [UserController::class, 'login']);
 Route::post('/auth/login/siiau', [UserController::class, 'loginSiiau']);
+Route::post('/auth/login/siiau/verificar', [UserController::class, 'verificarSiiau']);
 Route::put('/users/update/contrasenia/{id}', [UserController::class, 'nuevaContra']);
 Route::put('/users/update/datos/{id}', [UserController::class, 'editDatos']);
 Route::put('/users/update/foto/{id}', [UserController::class, 'editFoto']);

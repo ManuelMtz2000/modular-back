@@ -48,7 +48,7 @@ class UserController extends Controller
         $user->nombre = $request->input('nombre');
         $user->correo = $request->input('correo');
         $user->contrasenia = Hash::make($request->input('contrasenia'));
-        $user->tipo_usuario_id = 1;
+        $user->tipo_usuario_id = (int)$request->input('tipo_usuario_id');
         $user->curp = $request->input('curp');
         $user->datosContacto = $request->input('datosContacto');
         if($request->hasFile('imagen')){
@@ -125,11 +125,11 @@ class UserController extends Controller
     }
 
     public function loginSiiau(Request $request){
-        if(!Hash::check($request->input('contra2'), $request->input('contra1'))){
-            return response()->json([
-                'msg' => 'Datos incorrectos'
-            ], 401);
-        }
+        // if(!Hash::check($request->input('contra2'), $request->input('contra1'))){
+        //     return response()->json([
+        //         'msg' => 'Datos incorrectos'
+        //     ], 401);
+        // }
         $token = new PersonalAccess();
         $token->tokenable_type = 'App\Models\User';
         $token->tokenable_id = $request->input('codigo');
@@ -140,6 +140,17 @@ class UserController extends Controller
         return response()->json([
             'token' => $token->tokenable_id
         ]);
+    }
+
+    public function verificarSiiau(Request $request){
+        $verificar = User::where('curp', $request->input('codigo'))->get();
+        if(count($verificar) > 0){
+            return response()->json(true);
+        } else {
+            return response()->json([
+                'msg' => 'Datos incorrectos'
+            ]);
+        }
     }
 
     public function getPerfil($id){
