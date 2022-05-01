@@ -27,13 +27,16 @@ class PublicacionesController extends Controller
         $objeto = [];
         $publicaciones = [];
         foreach($publicacionesColeccion as $p){
+            $user = User::find($p->autorPublicacion);
+            $categoria = Categoria::find($p->categoriasPublicacion);
             $objeto = [
                 "id" => $p->id,
                 "tipoPublicacion" => $p->tipo_publicacion,
-                "categoriasPublicacion" => self::categoria($p->categoriasPublicacion),
-                "autorPublicacion" => self::getNombre($p->autorPublicacion),
+                "categoriasPublicacion" => $categoria->nombre_categoria,
+                "autorPublicacion" => $user->nombre,
+                "idAutor" => $p->autorPublicacion,
                 "fotoUsuario" => self::getPerfil($p->autorPublicacion),
-                "mostrarContacto" => self::getDatos($p->autorPublicacion, $p->mostrar_contacto),
+                "mostrarContacto" => $p->mostrar_contacto == 'Si' ? $user->datosContacto : null,
                 "fotoObjeto" => self::getImage($p->foto_objeto),
                 "descObjetoC" => $p->desc_objetoC,
                 "descDetallada" => $p->desc_detallada,
@@ -42,11 +45,6 @@ class PublicacionesController extends Controller
             $publicaciones[] = $objeto;
         }
         return response()->json($publicaciones);
-    }
-
-    public function categoria($categoriasPublicacion){
-        $categoria = Categoria::where('id', $categoriasPublicacion)->first();
-        return $categoria->nombre_categoria;
     }
 
     public function getImage($imagen){
@@ -61,14 +59,6 @@ class PublicacionesController extends Controller
     public function getPerfil($id){
         $user = User::where('id', $id)->first();
         return 'http://192.168.193.13:8000/img/fotos_p/'.$user->foto_perfil;
-    }
-
-    public function getDatos($id, $respuesta){
-        $user = User::where('id', $id)->first();
-        if($respuesta == 'Si'){
-            return $user->datosContacto;
-        }
-        return null;
     }
 
     public function prueba(){
@@ -96,6 +86,17 @@ class PublicacionesController extends Controller
             abort(404);
         }
     }
+
+    // public function codigoCorreo(Request $request){
+    //     $user = User::where('curp', $request->input('codigo'))->get();
+    //     if( count($user) > 0 ) {
+    //         $userP = User::where('id', $request->input('id'))->first();
+    //         $usuariorp = new UsuarioPublicacion();
+    //         $usuariorp->id_usuarioR = $user[0]->id;
+    //         $usuariorp->id_usuarioP = $userP->id;
+    //         $usuariorp->
+    //     }
+    // }
 
     public function correo(UsuarioPublicacion $publicacion){
         $user = User::where('id', $publicacion->id_usuarioP)->first();
@@ -138,6 +139,9 @@ class PublicacionesController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'imagen' => 'required|image|mimes:png,jpg,jpeg'
+        ]);
         $publicacion = new Publicacion();
         $publicacion->tipo_publicacion = $request->input('tipo_publicacion');
         $publicacion->mostrar_contacto = $request->input('mostrar_contacto');
@@ -158,7 +162,8 @@ class PublicacionesController extends Controller
         $publicacion->save();
         $etiquetas = json_decode($request->input('etiquetas'));
         foreach($etiquetas as $e){
-            Storage::disk('local')->append('extravios.pl', PHP_EOL.'etiquetas('.$publicacion->id.', '.$e.').', null);
+            $etiqueta = self::eliminar_acentos($e);
+            Storage::disk('local')->append('extravios.pl', PHP_EOL.'etiquetas('.$publicacion->id.', '.$etiqueta.').', null);
         }
         return '{"msg": "created"}';
     }
@@ -172,12 +177,13 @@ class PublicacionesController extends Controller
     public function show($id)
     {
         $publicacionColeccion = Publicacion::where('id', $id)->first();
+        $user = User::find($publicacionColeccion->autorPublicacion);
         $objeto = [];
             $objeto = [
                 "id" => $publicacionColeccion->id,
                 "tipoPublicacion" => $publicacionColeccion->tipo_publicacion,
-                "autorPublicacion" => self::getNombre($publicacionColeccion->autorPublicacion),
-                "mostrarContacto" => self::getDatos($publicacionColeccion->autorPublicacion, $publicacionColeccion->mostrar_contacto),
+                "autorPublicacion" => $user->nombre,
+                "mostrarContacto" => $publicacionColeccion->mostrar_contacto == 'Si' ? $user->datosContacto : null,
                 "fotoObjeto" => self::getImage($publicacionColeccion->foto_objeto),
                 "descObjetoC" => $publicacionColeccion->desc_objetoC,
                 "descDetallada" => $publicacionColeccion->desc_detallada,
@@ -189,35 +195,127 @@ class PublicacionesController extends Controller
 
     public function reportar(Request $request){
         $publicacion = Publicacion::where('id', $request->input('id'))->first();
-        DB::table('reportes')->insert([
-            "id_usuario_reporta" => $request->input('idReporta'),
-            "id_usuario_reportado" => $publicacion->autorPublicacion,
-            "id_publicacion" => $publicacion->id,
-            "descripcion" => $request->input('descripcion')
-        ]);
+        $userReporta = DB::table('reportes')->where('id_usuario_reporta', $request->input('idReporta'))->where('id_publicacion', $publicacion->id)->get();
+        if(count($userReporta) >= 1) {
+            return abort(404);
+        } else {
+            $user = DB::table('reportes')->where('id_usuario_reportado', $publicacion->autorPublicacion)->get();
+            if(count($user) < 3) {
+                DB::table('reportes')->insert([
+                    "id_usuario_reporta" => $request->input('idReporta'),
+                    "id_usuario_reportado" => $publicacion->autorPublicacion,
+                    "id_publicacion" => $publicacion->id,
+                    "descripcion" => $request->input('descripcion')
+                ]);
+            } else {
+                DB::table('users')->where('id', $publicacion->autorPublicacion)->update([
+                    "tipo_usuario_id" => 3
+                ]);
+                DB::table('publicaciones')->where('autorPublicacion', $publicacion->autorPublicacion)->update([
+                    "statusPublicacion" => 2
+                ]);
+            }
+        }
     }
 
+    function eliminar_acentos($cadena){
+		
+		//Reemplazamos la A y a
+		$cadena = str_replace(
+		array('Á', 'À', 'Â', 'Ä', 'á', 'à', 'ä', 'â', 'ª'),
+		array('A', 'A', 'A', 'A', 'a', 'a', 'a', 'a', 'a'),
+		$cadena
+		);
+
+		//Reemplazamos la E y e
+		$cadena = str_replace(
+		array('É', 'È', 'Ê', 'Ë', 'é', 'è', 'ë', 'ê'),
+		array('E', 'E', 'E', 'E', 'e', 'e', 'e', 'e'),
+		$cadena );
+
+		//Reemplazamos la I y i
+		$cadena = str_replace(
+		array('Í', 'Ì', 'Ï', 'Î', 'í', 'ì', 'ï', 'î'),
+		array('I', 'I', 'I', 'I', 'i', 'i', 'i', 'i'),
+		$cadena );
+
+		//Reemplazamos la O y o
+		$cadena = str_replace(
+		array('Ó', 'Ò', 'Ö', 'Ô', 'ó', 'ò', 'ö', 'ô'),
+		array('O', 'O', 'O', 'O', 'o', 'o', 'o', 'o'),
+		$cadena );
+
+		//Reemplazamos la U y u
+		$cadena = str_replace(
+		array('Ú', 'Ù', 'Û', 'Ü', 'ú', 'ù', 'ü', 'û'),
+		array('U', 'U', 'U', 'U', 'u', 'u', 'u', 'u'),
+		$cadena );
+
+		//Reemplazamos la N, n, C y c
+		$cadena = str_replace(
+		array('Ñ', 'ñ', 'Ç', 'ç'),
+		array('N', 'n', 'C', 'c'),
+		$cadena
+		);
+		
+		return $cadena;
+	}
+
     public function search(Request $request){
-        $output = `swipl -s C:\Users\Manue\OneDrive\Escritorio\Modular\\extravios-cucei-back\storage\app\\extravios.pl -g "buscar({$request->input('busqueda')})." -t halt.`;
-        $arreglo = str_split($output);
-        $coleccion = Publicacion::where('desc_objetoC', 'like', '%'.$request->input('busqueda').'%')
-            ->orWhere('desc_detallada', 'like', '%'.$request->input('busqueda').'%')
-            ->orWhere('lugar', 'like', '%'.$request->input('busqueda').'%')
-            ->orWhere(function ($query) use ( $arreglo ) {
-                foreach($arreglo as $a) {
-                    $query->orWhere('id', $a);
+        $array = [];
+        $output = '';
+        $coleccion = [];
+        if($request->input('busquedaArray')){
+            $array = $request->input('busquedaArray');
+            foreach($array as $a){
+                $palabra = str_replace(' ', '', strtolower($a));
+                $palabra2 = self::eliminar_acentos($palabra);
+                $output = $output.`swipl -s C:\Users\Manue\OneDrive\Escritorio\Modular\\extravios-cucei-back\storage\app\\extravios.pl -g "buscar({$palabra2})" -t halt.`;
+            }
+            $arreglo = str_split($output);
+            $coleccion = Publicacion::where('statusPublicacion', 1)
+            ->where(function ($query) use ( $array, $arreglo ) {
+                foreach($array as $a) {
+                    $query->orWhere('desc_objetoC', $a)
+                    ->orWhere('desc_detallada', $a)
+                    ->orWhere(function ($query2) use ( $arreglo ) {
+                        foreach($arreglo as $a2){ 
+                            $query2->orWhere('id', $a2);
+                        }
+                    });
                 }
             })
+            ->where('statusPublicacion', 1)
             ->get();
+        } else {
+            $palabra = explode(" " ,$request->input('busqueda'));
+            foreach($palabra as $p){
+                $output = $output.`swipl -s C:\Users\Manue\OneDrive\Escritorio\Modular\\extravios-cucei-back\storage\app\\extravios.pl -g "buscar({$p})" -t halt.`;
+            }
+            $arreglo = preg_split('{,}',$output);
+            $coleccion = Publicacion::where('statusPublicacion', 1)
+            ->where(function ($query) use ( $arreglo, $request ) {
+                $query->where('desc_objetoC', 'like', '%'.$request->input('busqueda').'%')
+                ->orWhere('desc_detallada', 'like', '%'.$request->input('busqueda').'%')
+                ->orWhere('lugar', 'like', '%'.$request->input('busqueda').'%')
+                ->orWhere(function ($query) use ( $arreglo ) {
+                    foreach($arreglo as $a) {
+                        $query->orWhere('id', $a);
+                    }
+                });
+            })
+            ->get();
+        }
         $objeto = [];
         $publicaciones = [];
         if(count($coleccion) > 0){
             foreach($coleccion as $c){
+                $user = User::find($c->autorPublicacion);
                 $objeto = [
                     "id" => $c->id,
                     "tipoPublicacion" => $c->tipo_publicacion,
-                    "autorPublicacion" => self::getNombre($c->autorPublicacion),
-                    "mostrarContacto" => self::getDatos($c->autorPublicacion, $c->mostrar_contacto),
+                    "autorPublicacion" => $user->nombre,
+                    "mostrarContacto" => $c->mostrar_contacto == 'Si' ? $user->datosContacto : null,
                     "fotoObjeto" => self::getImage($c->foto_objeto),
                     "descObjetoC" => $c->desc_objetoC,
                     "descDetallada" => $c->desc_detallada,
@@ -300,5 +398,47 @@ class PublicacionesController extends Controller
             $arreglo2[] = $objeto2;
         }
         return response()->json([$arreglo, $arreglo2], 200);
+    }
+
+    public function busquedaInteligente(Request $request){
+        $picture = '';
+        $filename = '';
+        if($request->hasFile('imagen')){
+            $file = $request->file('imagen');
+            $filename = $file->getClientOriginalName();
+            $picture = date('d-m-y h.i.s A').'-'.$filename;
+            $filename = pathinfo($picture, PATHINFO_FILENAME);
+            $file->move(public_path('busquedas'), $picture);
+        }
+
+        $file_path = public_path('busquedas\\'.$picture);
+        $api_credentials = array(
+            'key' => 'acc_49281df14ac8a2b',
+            'secret' => '45e83c2dd5b8c3c593c07cbb156d3694'
+        );
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "https://api.imagga.com/v2/tags?language=es&limit=5");
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_USERPWD, $api_credentials['key'].':'.$api_credentials['secret']);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_POST, 1);
+
+        // dd($file_path, $filename, $picture);
+
+        $fields = [
+            'image' => new \CurlFile($file_path, $filename.'/jpeg', $picture)
+        ];
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+        
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        $json_response = json_decode($response);
+        return response()->json($json_response);
     }
 }

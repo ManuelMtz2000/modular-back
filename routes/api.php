@@ -27,11 +27,13 @@ Route::put('/users/update/contrasenia/{id}', [UserController::class, 'nuevaContr
 Route::put('/users/update/datos/{id}', [UserController::class, 'editDatos']);
 Route::put('/users/update/foto/{id}', [UserController::class, 'editFoto']);
 Route::post('users/verificar/{id}', [UserController::class, 'verificar']);
+Route::get('/users/validate-user/{id}', [UserController::class, 'validarStatus']);
 Route::get('/publicaciones/get/{id}', [PublicacionesController::class, 'getByUser']);
 Route::post('/publicaciones/reportar', [PublicacionesController::class, 'reportar']);
 Route::post('/publicaciones/reclamar', [PublicacionesController::class, 'reclamar']);
 Route::put('/publicaciones/cerrar/{id}', [PublicacionesController::class, 'cerrarPublicacion']);
 Route::post('/publicaciones/busqueda', [PublicacionesController::class, 'search']);
+Route::post('/publicaciones/busqueda-inteligente', [PublicacionesController::class, 'busquedaInteligente']);
 
 Route::resource('users', UserController::class);
 Route::resource('publicaciones', PublicacionesController::class);

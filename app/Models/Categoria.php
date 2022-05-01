@@ -13,4 +13,9 @@ class Categoria extends Model
         "id",
         "nombre_categoria"
     ];
+
+    public function publicacion()
+    {
+        return $this->belongsTo(Publicacion::class);
+    }
 }

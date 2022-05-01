@@ -19,4 +19,14 @@ class UsuarioPublicacion extends Model
         "created_at",
         "updated_at"
     ];
+
+    public function usuarioreclama()
+    {
+        return $this->belongsTo(User::class, 'id_usuarioR');
+    }
+
+    public function usuariopublica()
+    {
+        return $this->belongsTo(User::class, 'id_usuarioP');
+    }
 }

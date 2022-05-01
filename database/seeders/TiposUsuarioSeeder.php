@@ -21,5 +21,8 @@ class TiposUsuarioSeeder extends Seeder
         DB::table('tipo_usuario')->insert([
             "descripcion" => "Externo",
         ]);
+        DB::table('tipo_usuario')->insert([
+            "descripcion" => "Bloqueado",
+        ]);
     }
 }

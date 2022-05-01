@@ -56,7 +56,7 @@ class UserController extends Controller
             $filename = $file->getClientOriginalExtension();
             $picture = date('d-m-y_h.i.s_A').'-'.Str::random(8).'.'.$filename;
             $user->foto_identificacion = $picture;
-            $file->move(public_path('identificaciones'), $picture);
+            $file->move(storage_path('identificaciones'), $picture);
         }
         if($request->hasFile('perfil')){
             $file = $request->file('perfil');
@@ -64,6 +64,8 @@ class UserController extends Controller
             $picture = date('d-m-y_h.i.s_A').'-'.Str::random(8).'.'.$filename;
             $user->foto_perfil = $picture;
             $file->move(public_path('img/fotos_p'), $picture);
+        } else {
+            $user->foto_perfil = "Default.jpeg";
         }
         $user->save();
         $verificar = new Verificar();
@@ -105,7 +107,32 @@ class UserController extends Controller
     }
 
     public function login(Request $request){
-        $user = User::where('correo', $request->input('correo'))->first();
+        $userValidate = User::where('correo', $request->input('correo'))->where('tipo_usuario_id','!=',3)->get();
+        if(count($userValidate) > 0){
+            $user = User::where('correo', $request->input('correo'))->where('tipo_usuario_id','!=',3)->first();
+            $objeto = [
+                "id" => $user->id,
+                "nombre" => $user->nombre,
+                "correo" => $user->correo,
+                "verificado" => $user->email_verified_at,
+                "fotoP" => self::getPerfil($user->id)
+            ];
+            if(!Hash::check($request->input('contrasenia'), $user->contrasenia)){
+                return response()->json([
+                    'msg' => 'Datos incorrectos'
+                ], 401);
+            }
+            return response()->json([
+                'user' => $objeto,
+                'token' => $user->createToken('Token')->plainTextToken
+            ]);
+        } else {
+            return abort(404);
+        }
+    }
+
+    public function loginSiiau(Request $request){
+        $user = User::where('curp', $request->input('codigo'))->first();
         $objeto = [
             "id" => $user->id,
             "nombre" => $user->nombre,
@@ -113,32 +140,9 @@ class UserController extends Controller
             "verificado" => $user->email_verified_at,
             "fotoP" => self::getPerfil($user->id)
         ];
-        if(!Hash::check($request->input('contrasenia'), $user->contrasenia)){
-            return response()->json([
-                'msg' => 'Datos incorrectos'
-            ], 401);
-        }
         return response()->json([
             'user' => $objeto,
-            'token' => $user->createToken('Token')->plainTextToken
-        ]);
-    }
-
-    public function loginSiiau(Request $request){
-        // if(!Hash::check($request->input('contra2'), $request->input('contra1'))){
-        //     return response()->json([
-        //         'msg' => 'Datos incorrectos'
-        //     ], 401);
-        // }
-        $token = new PersonalAccess();
-        $token->tokenable_type = 'App\Models\User';
-        $token->tokenable_id = $request->input('codigo');
-        $token->token = Str::random(64);
-        $token->name = 'Token';
-        $token->abilities = '["*"]';
-        $token->save();
-        return response()->json([
-            'token' => $token->tokenable_id
+            "token" => $user->createToken('Token')->plainTextToken
         ]);
     }
 
@@ -200,6 +204,15 @@ class UserController extends Controller
         
     }
 
+    public function validarStatus($id)
+    {
+        $user = User::where('id', $id)->where('tipo_usuario_id', '!=', 3)->get();
+        if(count($user) > 0) {
+            return response()->json($user);
+        }
+        return abort(404);
+    }
+
     public function nuevaContra(Request $request, $id){
         $user = User::where('id', $id)->first();
         if(Hash::check($request->input('contraOld'), $user->contrasenia)){
@@ -219,7 +232,9 @@ class UserController extends Controller
 
     public function editFoto(Request $request, $id){
         $user = User::where('id', $id)->first();
-        File::delete(public_path('img/fotos_p/'.$user->foto_perfil));
+        if($user->foto_perfil != "Default.jpeg"){
+            File::delete(public_path('img/fotos_p/'.$user->foto_perfil));
+        }
         if($request->hasFile('imagen')){
             $file = $request->file('imagen');
             $filename = $file->getClientOriginalExtension();
