@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PublicacionesController;
 use App\Http\Controllers\UserController;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/auth/siiau/{codigo}/{password}', [UserController::class, 'siiau']);
 Route::post('/auth/login', [UserController::class, 'login']);
 Route::post('/auth/login/siiau', [UserController::class, 'loginSiiau']);
 Route::post('/auth/login/siiau/verificar', [UserController::class, 'verificarSiiau']);
@@ -34,6 +36,7 @@ Route::post('/publicaciones/reclamar', [PublicacionesController::class, 'reclama
 Route::put('/publicaciones/cerrar/{id}', [PublicacionesController::class, 'cerrarPublicacion']);
 Route::post('/publicaciones/busqueda', [PublicacionesController::class, 'search']);
 Route::post('/publicaciones/busqueda-inteligente', [PublicacionesController::class, 'busquedaInteligente']);
+
 
 Route::resource('users', UserController::class);
 Route::resource('publicaciones', PublicacionesController::class);

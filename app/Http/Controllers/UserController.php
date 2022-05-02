@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Mail\Verificar as MailVerificar;
-use App\Models\PersonalAccess;
 use App\Models\User;
 use App\Models\Verificar;
+use Branca\Branca;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -129,6 +129,28 @@ class UserController extends Controller
         } else {
             return abort(404);
         }
+    }
+
+    public function siiau($codigo, $password)
+    {
+        $curl = curl_init();
+        $url_consulta = 'https://sigi-login.cucei.udg.mx/validar-credenciales';
+        $branca = new Branca(env('TOKEN_KEY', ''));
+        //dd(env('SIGI_LOGIN_SISTEMA  ', ''));
+        $token = $branca->encode(env('TOKEN_API_LOGIN_SIGI', ''));
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url_consulta,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                'sistema:' . env('SIGI_LOGIN_SISTEMA'),
+                'token:' . $token,
+                'codigo:' . $codigo,
+                'password:' . $password
+            )
+            ));
+
+        return json_decode(curl_exec($curl) === 'true');
     }
 
     public function loginSiiau(Request $request){
