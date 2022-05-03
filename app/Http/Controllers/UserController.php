@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\Verificar as MailVerificar;
+use App\Models\Ayuda;
 use App\Models\User;
 use App\Models\Verificar;
 use Branca\Branca;
@@ -237,12 +238,16 @@ class UserController extends Controller
 
     public function nuevaContra(Request $request, $id){
         $user = User::where('id', $id)->first();
-        if(Hash::check($request->input('contraOld'), $user->contrasenia)){
-            DB::table('users')->where('id', $id)->update([
-                "contrasenia" => Hash::make($request->input('contraNew'))
-            ]);
+        if($user->tipo_usuario_id != 1){
+            if(Hash::check($request->input('contraOld'), $user->contrasenia)){
+                DB::table('users')->where('id', $id)->update([
+                    "contrasenia" => Hash::make($request->input('contraNew'))
+                ]);
+            } else {
+                abort(404);
+            }
         } else {
-            abort(404);
+            abort(402);
         }
     }
 
@@ -277,5 +282,11 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         //
+    }
+
+    public function ayuda()
+    {
+        $ayuda = Ayuda::all();
+        return response()->json($ayuda);
     }
 }

@@ -36,7 +36,7 @@ Route::post('/publicaciones/reclamar', [PublicacionesController::class, 'reclama
 Route::put('/publicaciones/cerrar/{id}', [PublicacionesController::class, 'cerrarPublicacion']);
 Route::post('/publicaciones/busqueda', [PublicacionesController::class, 'search']);
 Route::post('/publicaciones/busqueda-inteligente', [PublicacionesController::class, 'busquedaInteligente']);
-
+Route::get('/ayuda', [UserController::class, 'ayuda']);
 
 Route::resource('users', UserController::class);
 Route::resource('publicaciones', PublicacionesController::class);
